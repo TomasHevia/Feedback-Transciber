@@ -9,3 +9,4 @@ uploads/
 venv/
 *.egg-info/
 dist/
+.claude/
