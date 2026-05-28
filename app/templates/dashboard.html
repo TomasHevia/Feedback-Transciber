@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — HotelVoz{% endblock %}
+
+{% block content %}
+<section class="dashboard-page">
+  <h1>Dashboard de quejas</h1>
+
+  <div id="stats-bar" class="stats-bar"></div>
+
+  {% if complaints %}
+  <table class="complaints-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Fecha</th>
+        <th>Sesión</th>
+        <th>Categoría</th>
+        <th>Problema</th>
+        <th>Estado</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in complaints %}
+      <tr>
+        <td>{{ c.id }}</td>
+        <td>{{ c.created_at.strftime('%d/%m %H:%M') }}</td>
+        <td>{{ c.session_label or '—' }}</td>
+        <td><span class="badge badge-{{ c.category }}">{{ c.category or '—' }}</span></td>
+        <td>{{ (c.problem or '')[:80] }}{% if c.problem and c.problem|length > 80 %}…{% endif %}</td>
+        <td><span class="status status-{{ c.status }}">{{ c.status }}</span></td>
+        <td><a href="{{ url_for('main.complaint_detail', complaint_id=c.id) }}">Ver</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty-msg">No hay quejas registradas aún.</p>
+  {% endif %}
+</section>
+{% endblock %}

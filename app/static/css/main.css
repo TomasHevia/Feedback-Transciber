@@ -1,0 +1,163 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, sans-serif;
+  background: #f5f6fa;
+  color: #1a1a2e;
+  min-height: 100vh;
+}
+
+nav {
+  background: #1a1a2e;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  gap: 1.5rem;
+}
+nav a { color: #e0e0e0; text-decoration: none; font-weight: 600; }
+nav a:hover { color: #fff; }
+
+main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+
+h1 { font-size: 1.6rem; margin-bottom: 1.25rem; }
+h2 { font-size: 1.1rem; margin-bottom: 0.5rem; color: #444; }
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  padding: 0.55rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn:hover:not(:disabled) { opacity: 0.85; }
+.btn-primary  { background: #4361ee; color: #fff; }
+.btn-danger   { background: #e63946; color: #fff; }
+.btn-success  { background: #2a9d8f; color: #fff; }
+.btn-secondary{ background: #6c757d; color: #fff; }
+.btn-sm       { padding: 0.3rem 0.75rem; font-size: 0.82rem; }
+
+/* Record page */
+.record-page { max-width: 520px; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-size: 0.88rem; color: #555; margin-bottom: 0.3rem; }
+.form-group input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+.record-controls { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
+.status-msg { font-size: 0.9rem; color: #555; margin-bottom: 0.75rem; min-height: 1.2em; }
+#upload-section { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+#audio-preview { width: 100%; }
+#result-section { margin-top: 1.5rem; }
+#result-json {
+  background: #1a1a2e;
+  color: #a8d8ea;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  overflow-x: auto;
+  margin-bottom: 0.75rem;
+}
+
+/* Dashboard */
+.stats-bar {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+.stat-chip {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.complaints-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.complaints-table th {
+  background: #1a1a2e;
+  color: #e0e0e0;
+  text-align: left;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.complaints-table td {
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.88rem;
+}
+.complaints-table tr:last-child td { border-bottom: none; }
+.complaints-table a { color: #4361ee; text-decoration: none; font-weight: 600; }
+
+.empty-msg { color: #888; font-style: italic; }
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.badge-ruido          { background: #ffd166; color: #7a4f00; }
+.badge-limpieza       { background: #90e0ef; color: #00456e; }
+.badge-facturación    { background: #c77dff; color: #3a0068; }
+.badge-temperatura    { background: #f4a261; color: #6d2000; }
+.badge-servicio_no_atendido { background: #e63946; color: #fff; }
+.badge-otro           { background: #adb5bd; color: #333; }
+
+/* Status */
+.status {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.status-pending   { background: #fff3cd; color: #856404; }
+.status-processed { background: #d1ecf1; color: #0c5460; }
+.status-reviewed  { background: #d4edda; color: #155724; }
+.status-error     { background: #f8d7da; color: #721c24; }
+
+/* Detail page */
+.detail-page .meta { color: #777; font-size: 0.88rem; margin-bottom: 1.25rem; }
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.card.full-width { grid-column: 1 / -1; }
+.status-actions { margin-top: 0.75rem; }
+
+@media (max-width: 600px) {
+  .detail-grid { grid-template-columns: 1fr; }
+  .complaints-table { font-size: 0.78rem; }
+}

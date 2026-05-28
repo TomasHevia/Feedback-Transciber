@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Queja #{{ complaint.id }} — HotelVoz{% endblock %}
+
+{% block content %}
+<section class="detail-page">
+  <h1>Queja #{{ complaint.id }}</h1>
+  <p class="meta">{{ complaint.created_at.strftime('%d/%m/%Y %H:%M') }} — {{ complaint.session_label or 'Sin etiqueta' }}</p>
+
+  <div class="detail-grid">
+    <div class="card">
+      <h2>Categoría</h2>
+      <span class="badge badge-{{ complaint.category }}">{{ complaint.category or '—' }}</span>
+    </div>
+
+    <div class="card">
+      <h2>Problema</h2>
+      <p>{{ complaint.problem or '—' }}</p>
+    </div>
+
+    <div class="card">
+      <h2>Solución aplicada</h2>
+      <p>{{ complaint.applied_solution or '—' }}</p>
+    </div>
+
+    <div class="card">
+      <h2>Acción sugerida</h2>
+      <p>{{ complaint.suggested_action or '—' }}</p>
+    </div>
+
+    <div class="card full-width">
+      <h2>Transcripción</h2>
+      <p>{{ complaint.transcription or '—' }}</p>
+    </div>
+
+    <div class="card">
+      <h2>Costo IA estimado</h2>
+      <p>${{ '%.5f'|format(complaint.ai_cost_usd or 0) }} USD</p>
+    </div>
+
+    <div class="card">
+      <h2>Estado</h2>
+      <span class="status status-{{ complaint.status }}">{{ complaint.status }}</span>
+      <div class="status-actions">
+        <button class="btn btn-sm" onclick="setStatus({{ complaint.id }}, 'reviewed')">Marcar revisado</button>
+      </div>
+    </div>
+  </div>
+
+  <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">← Volver</a>
+</section>
+
+<script>
+function setStatus(id, status) {
+  fetch('/api/complaints/' + id + '/status', {
+    method: 'PATCH',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({status})
+  }).then(r => r.json()).then(() => location.reload());
+}
+</script>
+{% endblock %}

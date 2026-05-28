@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Grabar queja — HotelVoz{% endblock %}
+
+{% block content %}
+<section class="record-page">
+  <h1>Nueva queja</h1>
+
+  <div class="form-group">
+    <label for="session-label">Etiqueta de sesión (opcional)</label>
+    <input type="text" id="session-label" placeholder="Ej: Sesión 1 — ruido">
+  </div>
+
+  <div class="record-controls">
+    <button id="btn-record" class="btn btn-primary">Iniciar grabación</button>
+    <button id="btn-stop" class="btn btn-danger" disabled>Detener</button>
+  </div>
+
+  <p id="record-status" class="status-msg"></p>
+
+  <div id="upload-section" style="display:none">
+    <audio id="audio-preview" controls></audio>
+    <button id="btn-submit" class="btn btn-success">Procesar y guardar</button>
+  </div>
+
+  <div id="result-section" style="display:none">
+    <h2>Resultado</h2>
+    <pre id="result-json"></pre>
+    <a id="result-link" href="#" class="btn btn-secondary">Ver en dashboard</a>
+  </div>
+</section>
+{% endblock %}
