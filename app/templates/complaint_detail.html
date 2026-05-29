@@ -1,53 +1,53 @@
 {% extends "base.html" %}
-{% block title %}Queja #{{ complaint.id }} — HotelVoz{% endblock %}
+{% block title %}Queja #{{ complaint.id }}{% endblock %}
 
 {% block content %}
-<section class="detail-page">
-  <nav class="breadcrumb">
-    <a href="{{ url_for('main.index') }}">Dashboard</a>
-    <span class="breadcrumb-sep">/</span>
-    <span>Queja #{{ complaint.id }}</span>
-  </nav>
+<nav class="flex items-center gap-2 text-sm text-slate-400 mb-6">
+  <a href="{{ url_for('main.index') }}" class="hover:text-slate-900 transition-colors">Dashboard</a>
+  <span class="text-slate-300">/</span>
+  <span>Queja #{{ complaint.id }}</span>
+</nav>
 
-  <div class="detail-header">
-    <div class="detail-meta">
-      <h1>Queja #{{ complaint.id }}</h1>
-      <p class="meta">{{ complaint.created_at.strftime('%d/%m/%Y %H:%M') }}{% if complaint.session_label %} · {{ complaint.session_label }}{% endif %}</p>
-    </div>
-    <div class="detail-badges">
-      <span class="badge badge-{{ complaint.category }}">{{ complaint.category or '—' }}</span>
-      <span class="status status-{{ complaint.status }}">{{ complaint.status }}</span>
-    </div>
+<div class="flex items-start justify-between gap-4 mb-6">
+  <div>
+    <h1 class="text-xl font-semibold tracking-tight mb-1">Queja #{{ complaint.id }}</h1>
+    <p class="text-sm text-slate-400">{{ complaint.created_at.strftime('%d/%m/%Y %H:%M') }}{% if complaint.session_label %} · {{ complaint.session_label }}{% endif %}</p>
+  </div>
+  <div class="flex gap-2 items-center pt-1 flex-shrink-0">
+    <span class="badge badge-{{ complaint.category }}">{{ complaint.category or '—' }}</span>
+    <span class="status status-{{ complaint.status }}">{{ complaint.status }}</span>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 gap-3 mb-3">
+  <div class="col-span-2 border border-slate-900 rounded-lg p-4">
+    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Problema</p>
+    <p class="text-sm leading-relaxed text-slate-900">{{ complaint.problem or '—' }}</p>
   </div>
 
-  <div class="detail-grid">
-    <div class="card card-highlight">
-      <p class="card-label">Problema</p>
-      <p class="card-body">{{ complaint.problem or '—' }}</p>
-    </div>
-
-    <div class="card">
-      <p class="card-label">Solución aplicada</p>
-      <p class="card-body">{{ complaint.applied_solution or '—' }}</p>
-    </div>
-
-    <div class="card">
-      <p class="card-label">Acción sugerida</p>
-      <p class="card-body">{{ complaint.suggested_action or '—' }}</p>
-    </div>
+  <div class="border border-slate-200 rounded-lg p-4">
+    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Solución aplicada</p>
+    <p class="text-sm leading-relaxed text-slate-700">{{ complaint.applied_solution or '—' }}</p>
   </div>
 
-  <details class="transcription-block">
-    <summary>Ver transcripción del audio</summary>
-    <p class="transcription-text">{{ complaint.transcription or '—' }}</p>
-  </details>
-
-  {% if complaint.status != 'reviewed' %}
-  <div class="detail-actions">
-    <button class="btn btn-primary" data-complaint-id="{{ complaint.id }}" data-action="reviewed">Marcar como revisado</button>
+  <div class="border border-slate-200 rounded-lg p-4">
+    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Acción sugerida</p>
+    <p class="text-sm leading-relaxed text-slate-700">{{ complaint.suggested_action or '—' }}</p>
   </div>
-  {% endif %}
+</div>
 
-  <a href="{{ url_for('main.index') }}" class="btn-link back-link">← Volver al dashboard</a>
-</section>
+<details class="transcription-block border border-slate-200 rounded-lg mb-5 overflow-hidden">
+  <summary class="flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-400 cursor-pointer hover:text-slate-700 hover:bg-slate-50 transition-colors select-none">
+    Ver transcripción del audio
+  </summary>
+  <p class="px-4 pt-3.5 pb-4 text-sm leading-relaxed text-slate-700 border-t border-slate-200 bg-slate-50">{{ complaint.transcription or '—' }}</p>
+</details>
+
+{% if complaint.status != 'reviewed' %}
+<div class="mb-5">
+  <button class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors" data-complaint-id="{{ complaint.id }}" data-action="reviewed">Marcar como revisado</button>
+</div>
+{% endif %}
+
+<a href="{{ url_for('main.index') }}" class="text-sm font-medium text-slate-400 border-b border-slate-200 pb-px hover:text-slate-900 hover:border-slate-900 transition-colors">← Volver al dashboard</a>
 {% endblock %}

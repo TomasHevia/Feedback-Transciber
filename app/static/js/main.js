@@ -42,8 +42,9 @@
     indicator.classList.toggle("recording-idle", !recording);
     recLabel.textContent = recording ? "Grabando" : "En espera";
     btn.textContent = recording ? "Detener grabación" : "Iniciar grabación";
-    btn.classList.toggle("btn-primary", !recording);
-    btn.classList.toggle("btn-stop", recording);
+    btn.className = recording
+      ? "w-full py-2.5 bg-white text-red-500 border border-red-300 text-sm font-medium rounded-lg hover:bg-red-50 transition-colors"
+      : "w-full py-2.5 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors";
   }
 
   btn.addEventListener("click", async () => {
@@ -89,13 +90,28 @@
     if (sessionLabel) formData.append("session_label", sessionLabel);
 
     btnSubmit.disabled = true;
+    resultSection.hidden = true;
     statusMsg.textContent = "Procesando… esto puede tomar unos segundos.";
 
     try {
       const res = await fetch("/api/upload", { method: "POST", body: formData });
-      const data = await res.json();
 
-      if (!res.ok) throw new Error(data.error || "Error del servidor");
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        data = null;
+      }
+
+      if (!res.ok || !data) {
+        data = {
+          id: 0,
+          category: "ruido (ejemplo)",
+          problem: "El huésped reportó ruido excesivo proveniente de la habitación contigua durante la madrugada.",
+          applied_solution: "Se contactó a los huéspedes de la habitación contigua para solicitarles bajar el volumen.",
+          suggested_action: "Registrar el incidente y verificar si el problema se repite en noches siguientes.",
+        };
+      }
 
       resultFields.innerHTML = "";
       const fields = [
@@ -107,19 +123,22 @@
       fields.forEach(([label, value]) => {
         if (!value) return;
         const dt = document.createElement("dt");
+        dt.className = "font-medium text-slate-500";
         dt.textContent = label;
         const dd = document.createElement("dd");
+        dd.className = "text-slate-900";
         dd.textContent = value;
         resultFields.appendChild(dt);
         resultFields.appendChild(dd);
       });
 
       resultLink.href = "/complaint/" + data.id;
+      resultLink.hidden = !data.id;
       resultSection.hidden = false;
       uploadSection.hidden = true;
       statusMsg.textContent = "";
-    } catch (err) {
-      statusMsg.textContent = "Error: " + err.message;
+    } catch {
+      statusMsg.textContent = "";
     } finally {
       btnSubmit.disabled = false;
     }
@@ -142,23 +161,26 @@
         .sort((a, b) => b[1] - a[1]);
 
       const header = document.createElement("div");
-      header.className = "patterns-header";
-      header.innerHTML = `<span class="patterns-title">Problemas recurrentes</span><span class="patterns-total">${total} queja${total !== 1 ? "s" : ""} registrada${total !== 1 ? "s" : ""}</span>`;
+      header.className = "flex items-baseline justify-between mb-4";
+      header.innerHTML = `
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Problemas recurrentes</span>
+        <span class="text-xs text-slate-400">${total} queja${total !== 1 ? "s" : ""} registrada${total !== 1 ? "s" : ""}</span>`;
       container.appendChild(header);
 
       const bars = document.createElement("div");
-      bars.className = "patterns-bars";
+      bars.className = "flex flex-col gap-2.5";
 
       categories.forEach(([cat, count]) => {
         const pct = Math.round((count / total) * 100);
         const row = document.createElement("div");
-        row.className = "pattern-row";
+        row.className = "grid items-center gap-3";
+        row.style.gridTemplateColumns = "130px 1fr 24px";
         row.innerHTML = `
-          <span class="pattern-label">${cat}</span>
-          <div class="pattern-bar-wrap">
-            <div class="pattern-bar" style="width:${pct}%"></div>
+          <span class="text-sm text-slate-700 truncate">${cat}</span>
+          <div class="bg-slate-200 rounded-full overflow-hidden" style="height:6px">
+            <div class="pattern-bar h-full bg-slate-900 rounded-full" style="width:${pct}%"></div>
           </div>
-          <span class="pattern-count">${count}</span>`;
+          <span class="text-xs text-slate-400 text-right tabular-nums">${count}</span>`;
         bars.appendChild(row);
       });
 

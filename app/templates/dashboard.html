@@ -1,47 +1,45 @@
 {% extends "base.html" %}
-{% block title %}Dashboard — HotelVoz{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<section class="dashboard-page">
-  <div class="dashboard-header">
-    <h1>Quejas</h1>
-    <a href="{{ url_for('main.nueva_queja') }}" class="btn btn-primary">+ Nueva</a>
-  </div>
+<div class="flex items-center justify-between mb-8">
+  <h1 class="text-xl font-semibold tracking-tight">Quejas</h1>
+  <a href="{{ url_for('main.nueva_queja') }}" class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors">+ Nueva</a>
+</div>
 
-  <div id="stats-bar" class="patterns-section"></div>
+<div id="stats-bar" class="border border-slate-200 rounded-lg p-5 bg-slate-50 mb-6"></div>
 
-  {% if complaints %}
-  <div class="table-wrap">
-    <table class="complaints-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Fecha</th>
-          <th>Categoría</th>
-          <th>Problema</th>
-          <th>Estado</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for c in complaints %}
-        <tr>
-          <td class="col-id">{{ c.id }}</td>
-          <td class="col-date">{{ c.created_at.strftime('%d/%m %H:%M') }}</td>
-          <td><span class="badge badge-{{ c.category }}">{{ c.category or '—' }}</span></td>
-          <td class="col-problem">{{ (c.problem or '')[:80] }}{% if c.problem and c.problem|length > 80 %}…{% endif %}</td>
-          <td><span class="status status-{{ c.status }}">{{ c.status }}</span></td>
-          <td><a class="table-link" href="{{ url_for('main.complaint_detail', complaint_id=c.id) }}">Ver →</a></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% else %}
-  <div class="empty-state">
-    <p>No hay quejas registradas aún.</p>
-    <a href="{{ url_for('main.nueva_queja') }}" class="btn btn-primary">Grabar primera queja</a>
-  </div>
-  {% endif %}
-</section>
+{% if complaints %}
+<div class="border border-slate-200 rounded-lg overflow-hidden">
+  <table class="w-full border-collapse">
+    <thead>
+      <tr class="bg-slate-50 border-b border-slate-200">
+        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">#</th>
+        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Fecha</th>
+        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Categoría</th>
+        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Problema</th>
+        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Estado</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in complaints %}
+      <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors last:border-0">
+        <td class="px-4 py-3.5 text-sm text-slate-400">{{ c.id }}</td>
+        <td class="px-4 py-3.5 text-sm text-slate-400 whitespace-nowrap">{{ c.created_at.strftime('%d/%m %H:%M') }}</td>
+        <td class="px-4 py-3.5"><span class="badge badge-{{ c.category }}">{{ c.category or '—' }}</span></td>
+        <td class="px-4 py-3.5 text-sm text-slate-700 max-w-xs">{{ (c.problem or '')[:80] }}{% if c.problem and c.problem|length > 80 %}…{% endif %}</td>
+        <td class="px-4 py-3.5"><span class="status status-{{ c.status }}">{{ c.status }}</span></td>
+        <td class="px-4 py-3.5 text-right"><a class="text-xs font-medium text-slate-400 hover:text-slate-900 transition-colors whitespace-nowrap" href="{{ url_for('main.complaint_detail', complaint_id=c.id) }}">Ver →</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="flex flex-col items-center py-20 gap-4 text-slate-400">
+  <p class="text-sm">No hay quejas registradas aún.</p>
+  <a href="{{ url_for('main.nueva_queja') }}" class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors">Grabar primera queja</a>
+</div>
+{% endif %}
 {% endblock %}

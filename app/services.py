@@ -74,11 +74,14 @@ def analyze_complaint(transcription: str) -> tuple[dict, float]:
 
     raw = response.text.strip()
     # Strip markdown code fences if present
-    if raw.startswith("```"):
-        raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
-    data = json.loads(raw.strip())
+    if "```" in raw:
+        import re
+        raw = re.sub(r"```(?:json)?", "", raw).strip()
+    # Extract JSON object in case Gemini adds surrounding text
+    start, end = raw.find("{"), raw.rfind("}") + 1
+    if start != -1 and end > start:
+        raw = raw[start:end]
+    data = json.loads(raw)
     cost = _estimate_gemini_cost(response)
     return data, cost
 

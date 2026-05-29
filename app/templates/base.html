@@ -3,23 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}HotelVoz{% endblock %}</title>
+  <title>{% block title %}{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
-<body>
-  <nav>
-    <a class="nav-logo" href="{{ url_for('main.index') }}">
+<body class="bg-white text-slate-900 min-h-screen font-sans antialiased">
+  <nav class="border-b border-slate-200 h-14 flex items-center justify-between px-6">
+    <a href="{{ url_for('main.index') }}">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#0f172a" stroke-width="1.5"/><path d="M7 10.5l2 2 4-4" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </a>
-    <div class="nav-links">
-      <a href="{{ url_for('main.index') }}">Dashboard</a>
-      <a href="{{ url_for('main.nueva_queja') }}">Nueva queja</a>
+    <div class="flex gap-6">
+      <a href="{{ url_for('main.index') }}" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">Dashboard</a>
+      <a href="{{ url_for('main.nueva_queja') }}" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">Nueva queja</a>
     </div>
   </nav>
-  <main>
+  <main class="max-w-4xl mx-auto px-6 py-10">
     {% block content %}{% endblock %}
   </main>
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
