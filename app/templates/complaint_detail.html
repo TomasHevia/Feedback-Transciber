@@ -3,59 +3,51 @@
 
 {% block content %}
 <section class="detail-page">
-  <h1>Queja #{{ complaint.id }}</h1>
-  <p class="meta">{{ complaint.created_at.strftime('%d/%m/%Y %H:%M') }} — {{ complaint.session_label or 'Sin etiqueta' }}</p>
+  <nav class="breadcrumb">
+    <a href="{{ url_for('main.index') }}">Dashboard</a>
+    <span class="breadcrumb-sep">/</span>
+    <span>Queja #{{ complaint.id }}</span>
+  </nav>
 
-  <div class="detail-grid">
-    <div class="card">
-      <h2>Categoría</h2>
+  <div class="detail-header">
+    <div class="detail-meta">
+      <h1>Queja #{{ complaint.id }}</h1>
+      <p class="meta">{{ complaint.created_at.strftime('%d/%m/%Y %H:%M') }}{% if complaint.session_label %} · {{ complaint.session_label }}{% endif %}</p>
+    </div>
+    <div class="detail-badges">
       <span class="badge badge-{{ complaint.category }}">{{ complaint.category or '—' }}</span>
-    </div>
-
-    <div class="card">
-      <h2>Problema</h2>
-      <p>{{ complaint.problem or '—' }}</p>
-    </div>
-
-    <div class="card">
-      <h2>Solución aplicada</h2>
-      <p>{{ complaint.applied_solution or '—' }}</p>
-    </div>
-
-    <div class="card">
-      <h2>Acción sugerida</h2>
-      <p>{{ complaint.suggested_action or '—' }}</p>
-    </div>
-
-    <div class="card full-width">
-      <h2>Transcripción</h2>
-      <p>{{ complaint.transcription or '—' }}</p>
-    </div>
-
-    <div class="card">
-      <h2>Costo IA estimado</h2>
-      <p>${{ '%.5f'|format(complaint.ai_cost_usd or 0) }} USD</p>
-    </div>
-
-    <div class="card">
-      <h2>Estado</h2>
       <span class="status status-{{ complaint.status }}">{{ complaint.status }}</span>
-      <div class="status-actions">
-        <button class="btn btn-sm" onclick="setStatus({{ complaint.id }}, 'reviewed')">Marcar revisado</button>
-      </div>
     </div>
   </div>
 
-  <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">← Volver</a>
-</section>
+  <div class="detail-grid">
+    <div class="card card-highlight">
+      <p class="card-label">Problema</p>
+      <p class="card-body">{{ complaint.problem or '—' }}</p>
+    </div>
 
-<script>
-function setStatus(id, status) {
-  fetch('/api/complaints/' + id + '/status', {
-    method: 'PATCH',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({status})
-  }).then(r => r.json()).then(() => location.reload());
-}
-</script>
+    <div class="card">
+      <p class="card-label">Solución aplicada</p>
+      <p class="card-body">{{ complaint.applied_solution or '—' }}</p>
+    </div>
+
+    <div class="card">
+      <p class="card-label">Acción sugerida</p>
+      <p class="card-body">{{ complaint.suggested_action or '—' }}</p>
+    </div>
+  </div>
+
+  <details class="transcription-block">
+    <summary>Ver transcripción del audio</summary>
+    <p class="transcription-text">{{ complaint.transcription or '—' }}</p>
+  </details>
+
+  {% if complaint.status != 'reviewed' %}
+  <div class="detail-actions">
+    <button class="btn btn-primary" data-complaint-id="{{ complaint.id }}" data-action="reviewed">Marcar como revisado</button>
+  </div>
+  {% endif %}
+
+  <a href="{{ url_for('main.index') }}" class="btn-link back-link">← Volver al dashboard</a>
+</section>
 {% endblock %}

@@ -3,39 +3,45 @@
 
 {% block content %}
 <section class="dashboard-page">
-  <h1>Dashboard de quejas</h1>
+  <div class="dashboard-header">
+    <h1>Quejas</h1>
+    <a href="{{ url_for('main.nueva_queja') }}" class="btn btn-primary">+ Nueva</a>
+  </div>
 
-  <div id="stats-bar" class="stats-bar"></div>
+  <div id="stats-bar" class="patterns-section"></div>
 
   {% if complaints %}
-  <table class="complaints-table">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Fecha</th>
-        <th>Sesión</th>
-        <th>Categoría</th>
-        <th>Problema</th>
-        <th>Estado</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for c in complaints %}
-      <tr>
-        <td>{{ c.id }}</td>
-        <td>{{ c.created_at.strftime('%d/%m %H:%M') }}</td>
-        <td>{{ c.session_label or '—' }}</td>
-        <td><span class="badge badge-{{ c.category }}">{{ c.category or '—' }}</span></td>
-        <td>{{ (c.problem or '')[:80] }}{% if c.problem and c.problem|length > 80 %}…{% endif %}</td>
-        <td><span class="status status-{{ c.status }}">{{ c.status }}</span></td>
-        <td><a href="{{ url_for('main.complaint_detail', complaint_id=c.id) }}">Ver</a></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="table-wrap">
+    <table class="complaints-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Fecha</th>
+          <th>Categoría</th>
+          <th>Problema</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in complaints %}
+        <tr>
+          <td class="col-id">{{ c.id }}</td>
+          <td class="col-date">{{ c.created_at.strftime('%d/%m %H:%M') }}</td>
+          <td><span class="badge badge-{{ c.category }}">{{ c.category or '—' }}</span></td>
+          <td class="col-problem">{{ (c.problem or '')[:80] }}{% if c.problem and c.problem|length > 80 %}…{% endif %}</td>
+          <td><span class="status status-{{ c.status }}">{{ c.status }}</span></td>
+          <td><a class="table-link" href="{{ url_for('main.complaint_detail', complaint_id=c.id) }}">Ver →</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
   {% else %}
-  <p class="empty-msg">No hay quejas registradas aún.</p>
+  <div class="empty-state">
+    <p>No hay quejas registradas aún.</p>
+    <a href="{{ url_for('main.nueva_queja') }}" class="btn btn-primary">Grabar primera queja</a>
+  </div>
   {% endif %}
 </section>
 {% endblock %}

@@ -19,13 +19,13 @@ def _allowed_file(filename: str) -> bool:
 
 @main.route("/")
 def index():
-    return render_template("index.html")
-
-
-@main.route("/dashboard")
-def dashboard():
     complaints = Complaint.query.order_by(Complaint.created_at.desc()).all()
     return render_template("dashboard.html", complaints=complaints)
+
+
+@main.route("/nueva-queja")
+def nueva_queja():
+    return render_template("index.html")
 
 
 @main.route("/complaint/<int:complaint_id>")

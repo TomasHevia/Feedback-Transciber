@@ -4,12 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}HotelVoz{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 <body>
   <nav>
-    <a href="{{ url_for('main.index') }}">Grabar</a>
-    <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+    <a class="nav-logo" href="{{ url_for('main.index') }}">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#0f172a" stroke-width="1.5"/><path d="M7 10.5l2 2 4-4" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <div class="nav-links">
+      <a href="{{ url_for('main.index') }}">Dashboard</a>
+      <a href="{{ url_for('main.nueva_queja') }}">Nueva queja</a>
+    </div>
   </nav>
   <main>
     {% block content %}{% endblock %}
