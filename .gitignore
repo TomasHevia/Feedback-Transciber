@@ -7,6 +7,9 @@ uploads/
 *.db
 .venv/
 venv/
+env/
+.env/
 *.egg-info/
 dist/
 .claude/
+CLAUDE.md
