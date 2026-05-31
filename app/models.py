@@ -19,7 +19,8 @@ class Complaint(db.Model):
     suggested_action = db.Column(db.Text)
     ai_cost_usd = db.Column(db.Float)
 
-    status = db.Column(db.String(50), default="pending")  # pending | processed | reviewed
+    status = db.Column(db.String(50), default="pending")  # pending | processed | reviewed+
+    processing_error = db.Column(db.Text)
 
     def to_dict(self):
         return {

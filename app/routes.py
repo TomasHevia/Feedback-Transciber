@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 from app import db
 from app.models import Complaint
 from app.services import transcribe_audio, analyze_complaint
+import traceback
 
 main = Blueprint("main", __name__)
 api = Blueprint("api", __name__)
@@ -68,7 +69,9 @@ def upload_audio():
         complaint.status = "processed"
         db.session.commit()
     except Exception as err:
+        traceback.print_exc()
         complaint.status = "error"
+        complaint.processing_error = str(err)
         db.session.commit()
         return jsonify({"error": str(err), "complaint_id": complaint.id}), 500
 
@@ -102,13 +105,16 @@ def update_status(complaint_id):
 @api.route("/stats", methods=["GET"])
 def stats():
     from sqlalchemy import func
-    total = Complaint.query.count()
+    total = Complaint.query.filter(
+        Complaint.status != "error"
+    ).count()
     by_category = (
         db.session.query(Complaint.category, func.count(Complaint.id))
+        .filter(Complaint.status != "error")
         .group_by(Complaint.category)
         .all()
     )
     return jsonify({
         "total": total,
-        "by_category": {cat: count for cat, count in by_category},
+        "by_category": {(cat or "sin_categoria"): count for cat, count in by_category},
     })
