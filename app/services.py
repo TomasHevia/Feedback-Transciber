@@ -9,18 +9,26 @@ import torch
 
 _whisper_model = None
 load_dotenv()
+credentials_path = os.getenv("ROUTE_CREDENTIALS")
 
-credentials = service_account.Credentials.from_service_account_file(
-    os.getenv("ROUTE_CREDENTIALS"),
-    scopes=["https://www.googleapis.com/auth/cloud-platform"]
-)
+if credentials_path:
+    credentials = service_account.Credentials.from_service_account_file(
+        credentials_path,
+        scopes=["https://www.googleapis.com/auth/cloud-platform"]
+    )
 
-client = genai.Client(
-    vertexai=True,
-    project=os.getenv("GOOGLE_CLOUD_PROJECT_ID"),
-    location=os.getenv("GOOGLE_CLOUD_LOCATION"),
-    credentials=credentials,
-)
+    client = genai.Client(
+        vertexai=True,
+        project=project,
+        location=location,
+        credentials=credentials,
+    )
+else:
+    client = genai.Client(
+        vertexai=True,
+        project=project,
+        location=location,
+    )
 
 MODEL_NAME = os.getenv(
     "GOOGLE_CLOUD_MODEL",
