@@ -1,9 +1,10 @@
 import os
-from flask import Blueprint, request, jsonify, render_template, current_app
+from flask import Blueprint, request, jsonify, render_template, current_app, send_from_directory, redirect, url_for, session
 from werkzeug.utils import secure_filename
 from app import db
 from app.models import Complaint
 from app.services import transcribe_audio, analyze_complaint
+from app.auth import login_required, roles_expected
 import traceback
 
 main = Blueprint("main", __name__)
@@ -19,25 +20,38 @@ def _allowed_file(filename: str) -> bool:
 # ── Frontend routes ────────────────────────────────────────────────────────────
 
 @main.route("/")
+@login_required
+@roles_expected("supervisor")
 def index():
     complaints = Complaint.query.order_by(Complaint.created_at.desc()).all()
     return render_template("dashboard.html", complaints=complaints)
 
 
 @main.route("/nueva-queja")
+@login_required
+@roles_expected("receptionist", "supervisor")
 def nueva_queja():
     return render_template("index.html")
 
 
 @main.route("/complaint/<int:complaint_id>")
+@login_required
+@roles_expected("supervisor")
 def complaint_detail(complaint_id):
     complaint = Complaint.query.get_or_404(complaint_id)
     return render_template("complaint_detail.html", complaint=complaint)
 
 
+@main.route("/uploads/<path:filename>")
+def uploaded_file(filename):
+    return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename)
+
+
 # ── API routes ─────────────────────────────────────────────────────────────────
 
 @api.route("/upload", methods=["POST"])
+@login_required
+@roles_expected("receptionist", "supervisor")
 def upload_audio():
     """Receives audio file, saves it, and triggers processing pipeline."""
     if "audio" not in request.files:
@@ -58,9 +72,13 @@ def upload_audio():
 
     try:
         transcription, t_cost = transcribe_audio(save_path)
+        
+        
+        complaint.transcription = transcription
+        db.session.commit()
+
         analysis, a_cost = analyze_complaint(transcription)
 
-        complaint.transcription = transcription
         complaint.category = analysis.get("categoria", "otro")
         complaint.problem = analysis.get("problema", "")
         complaint.applied_solution = analysis.get("solucion_aplicada", "")
@@ -79,18 +97,24 @@ def upload_audio():
 
 
 @api.route("/complaints", methods=["GET"])
+@login_required
+@roles_expected("supervisor")
 def list_complaints():
     complaints = Complaint.query.order_by(Complaint.created_at.desc()).all()
     return jsonify([c.to_dict() for c in complaints])
 
 
 @api.route("/complaints/<int:complaint_id>", methods=["GET"])
+@login_required
+@roles_expected("supervisor")
 def get_complaint(complaint_id):
     complaint = Complaint.query.get_or_404(complaint_id)
     return jsonify(complaint.to_dict())
 
 
 @api.route("/complaints/<int:complaint_id>/status", methods=["PATCH"])
+@login_required
+@roles_expected("supervisor")
 def update_status(complaint_id):
     complaint = Complaint.query.get_or_404(complaint_id)
     data = request.get_json(silent=True) or {}
@@ -103,6 +127,8 @@ def update_status(complaint_id):
 
 
 @api.route("/stats", methods=["GET"])
+@login_required
+@roles_expected("supervisor")
 def stats():
     from sqlalchemy import func
     total = Complaint.query.filter(

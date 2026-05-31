@@ -36,6 +36,16 @@
   </div>
 </div>
 
+{% if complaint.audio_filename %}
+<div class="mb-5 p-4 border border-slate-200 rounded-lg bg-slate-50">
+  <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Audio original</p>
+  <audio controls class="w-full h-10 outline-none">
+    <source src="{{ url_for('main.uploaded_file', filename=complaint.audio_filename) }}">
+    Tu navegador no soporta el elemento de audio.
+  </audio>
+</div>
+{% endif %}
+
 <details class="transcription-block border border-slate-200 rounded-lg mb-5 overflow-hidden">
   <summary class="flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-400 cursor-pointer hover:text-slate-700 hover:bg-slate-50 transition-colors select-none">
     Ver transcripción del audio

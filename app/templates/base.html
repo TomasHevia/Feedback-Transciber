@@ -24,9 +24,14 @@
     <a href="{{ url_for('main.index') }}">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#0f172a" stroke-width="1.5"/><path d="M7 10.5l2 2 4-4" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </a>
-    <div class="flex gap-6">
-      <a href="{{ url_for('main.index') }}" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">Dashboard</a>
-      <a href="{{ url_for('main.nueva_queja') }}" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">Nueva queja</a>
+    <div class="flex gap-6 items-center">
+      {% if session.get('role') == 'supervisor' %}
+        <a href="{{ url_for('main.index') }}" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">Dashboard</a>
+      {% endif %}
+      {% if session.get('user_id') %}
+        <a href="{{ url_for('main.nueva_queja') }}" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">Nueva queja</a>
+        <a href="{{ url_for('auth.logout') }}" class="text-sm font-medium text-red-500 hover:text-red-700 transition-colors">Salir ({{ session.get('username') }})</a>
+      {% endif %}
     </div>
   </nav>
   <main class="max-w-4xl mx-auto px-6 py-10">

@@ -10,6 +10,8 @@ import torch
 _whisper_model = None
 load_dotenv()
 credentials_path = os.getenv("ROUTE_CREDENTIALS")
+project = os.getenv("GOOGLE_CLOUD_PROJECT_ID")
+location = os.getenv("GOOGLE_CLOUD_LOCATION")
 
 if credentials_path:
     credentials = service_account.Credentials.from_service_account_file(
