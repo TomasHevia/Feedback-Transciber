@@ -88,7 +88,8 @@ def report():
                                error=f"Error al generar el reporte con Gemini: {e}")
 
     filters_summary = {
-        "categoria": category, "estado": status,
+        "categoria": ", ".join(selected_categories) if selected_categories else "Todas",
+        "estado": status,
         "desde": date_from, "hasta": date_to,
     }
     return render_template("report.html", categories=categories,

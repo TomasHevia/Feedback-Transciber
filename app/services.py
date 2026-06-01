@@ -2,6 +2,7 @@ import os
 import json
 from dotenv import load_dotenv
 from google import genai
+from google.oauth2 import service_account
 from google.genai import types
 
 try:
@@ -14,10 +15,29 @@ except ImportError:
 _whisper_model = None
 load_dotenv()
 
-client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY"),
-    http_options={"timeout": 45},
-)
+project = os.getenv("GOOGLE_CLOUD_PROJECT_ID")
+location = os.getenv("GOOGLE_CLOUD_LOCATION")
+
+credentials_path = os.getenv("ROUTE_CREDENTIALS")
+
+if credentials_path:
+    credentials = service_account.Credentials.from_service_account_file(
+        credentials_path,
+        scopes=["https://www.googleapis.com/auth/cloud-platform"]
+    )
+
+    client = genai.Client(
+        vertexai=True,
+        project=project,
+        location=location,
+        credentials=credentials,
+    )
+else:
+    client = genai.Client(
+        vertexai=True,
+        project=project,
+        location=location,
+    )
 
 MODEL_NAME = os.getenv(
     "GOOGLE_CLOUD_MODEL",

@@ -82,7 +82,7 @@ Crear un archivo .env con la ruta a las credenciales:
 
 ```bash
 ROUTE_CREDENTIALS=/ruta/a/service-account.json
-GOOGLE_CLOUD_PROJECT_ID=tu-proyecto
+GOOGLE_CLOUD_PROJECT_ID=hfshield
 GOOGLE_CLOUD_LOCATION=us-central1
 GOOGLE_CLOUD_MODEL=gemini-2.5-flash
 ```
@@ -101,7 +101,7 @@ gcloud auth application-default login
 Luego configurar el archivo .env:
 
 ```bash
-GOOGLE_CLOUD_PROJECT_ID=tu-proyecto
+GOOGLE_CLOUD_PROJECT_ID=hfshield
 GOOGLE_CLOUD_LOCATION=us-central1
 GOOGLE_CLOUD_MODEL=gemini-2.5-flash
 ```
