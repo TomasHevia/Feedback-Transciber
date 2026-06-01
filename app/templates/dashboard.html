@@ -1,45 +1,93 @@
 {% extends "base.html" %}
-{% block title %}Dashboard{% endblock %}
+{% block title %}Panel{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-8">
-  <h1 class="text-xl font-semibold tracking-tight">Quejas</h1>
-  <a href="{{ url_for('main.nueva_queja') }}" class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors">+ Nueva</a>
-</div>
+<div class="bg-white border border-slate-200 rounded-xl shadow-md overflow-hidden">
 
-<div id="stats-bar" class="border border-slate-200 rounded-lg p-5 bg-slate-50 mb-6"></div>
+  <!-- Encabezado -->
+  <div class="flex items-center justify-between px-6 py-5 bg-white border-b border-slate-200">
+    <div>
+      <h1 class="text-lg font-semibold tracking-tight text-slate-900">Historial de quejas</h1>
+      <p class="text-xs text-slate-500 mt-0.5">Registro de incidencias capturadas en recepción</p>
+    </div>
+    <div class="flex gap-2">
+      <a href="{{ url_for('main.report') }}" class="px-4 py-2 border border-slate-300 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-100 hover:border-slate-400 hover:text-slate-900 transition-colors">Generar reporte</a>
+      <a href="{{ url_for('main.nueva_queja') }}" class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors">+ Nueva queja</a>
+    </div>
+  </div>
 
-{% if complaints %}
-<div class="border border-slate-200 rounded-lg overflow-hidden">
+  <!-- Estadísticas -->
+  <div id="stats-bar" class="px-6 py-5 border-b border-slate-200 bg-sky-50"></div>
+
+  <!-- Alertas (oculto hasta que JS lo active) -->
+  <div id="alerts-bar" class="hidden px-6 py-4 border-b border-amber-200 bg-amber-50"></div>
+
+  {% if complaints %}
+
+  <!-- Filtros -->
+  <div class="flex gap-3 px-6 py-3 border-b border-slate-200 bg-white flex-wrap items-center">
+    <input type="text" id="filter-text" placeholder="Buscar en problemas…"
+      class="flex-1 min-w-40 px-3 py-1.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-sky-400 transition-colors text-slate-700 placeholder-slate-400">
+    <select id="filter-category"
+      class="px-3 py-1.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-sky-400 bg-white text-slate-700">
+      <option value="">Todas las categorías</option>
+    </select>
+    <select id="filter-status"
+      class="px-3 py-1.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-sky-400 bg-white text-slate-700">
+      <option value="">Todos los estados</option>
+      <option value="pending">Procesando…</option>
+      <option value="processed">Sin revisar</option>
+      <option value="reviewed">Cerrado</option>
+      <option value="error">Error</option>
+    </select>
+    <div class="flex items-center gap-2">
+      <input type="text" id="filter-date-range" placeholder="Rango de fechas…" readonly
+        class="px-3 py-1.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-sky-400 bg-white text-slate-700 w-52 cursor-pointer">
+      <button id="btn-clear-dates" class="hidden text-xs text-slate-400 hover:text-slate-700 transition-colors whitespace-nowrap">× Limpiar</button>
+    </div>
+  </div>
+
+  <!-- Tabla -->
   <table class="w-full border-collapse">
     <thead>
-      <tr class="bg-slate-50 border-b border-slate-200">
-        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">#</th>
-        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Fecha</th>
-        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Categoría</th>
-        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Problema</th>
-        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Estado</th>
+      <tr class="bg-slate-100 border-b border-slate-200">
+        <th class="text-left px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">#</th>
+        <th class="text-left px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha</th>
+        <th class="text-left px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Categoría</th>
+        <th class="text-left px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Problema</th>
+        <th class="text-left px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Estado</th>
         <th></th>
       </tr>
     </thead>
-    <tbody>
+    <tbody class="bg-white">
       {% for c in complaints %}
-      <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors last:border-0">
-        <td class="px-4 py-3.5 text-sm text-slate-400">{{ c.id }}</td>
-        <td class="px-4 py-3.5 text-sm text-slate-400 whitespace-nowrap">{{ c.created_at.strftime('%d/%m %H:%M') }}</td>
-        <td class="px-4 py-3.5"><span class="badge badge-{{ c.category }}">{{ c.category or '—' }}</span></td>
-        <td class="px-4 py-3.5 text-sm text-slate-700 max-w-xs">{{ (c.problem or '')[:80] }}{% if c.problem and c.problem|length > 80 %}…{% endif %}</td>
-        <td class="px-4 py-3.5"><span class="status status-{{ c.status }}">{{ c.status }}</span></td>
-        <td class="px-4 py-3.5 text-right"><a class="text-xs font-medium text-slate-400 hover:text-slate-900 transition-colors whitespace-nowrap" href="{{ url_for('main.complaint_detail', complaint_id=c.id) }}">Ver →</a></td>
+      <tr class="border-b border-slate-100 hover:bg-sky-50 transition-colors last:border-0"
+          data-category="{{ c.category or '' }}"
+          data-status="{{ c.status or '' }}"
+          data-problem="{{ (c.problem or '') | lower }}"
+          data-date="{{ c.created_at.strftime('%Y-%m-%d') }}">
+        <td class="px-6 py-3.5 text-sm text-slate-400">{{ c.id }}</td>
+        <td class="px-6 py-3.5 text-sm text-slate-500 whitespace-nowrap">{{ c.created_at.strftime('%d/%m %H:%M') }}</td>
+        <td class="px-6 py-3.5"><span class="badge badge-{{ c.category }}">{{ c.category | category_label }}</span></td>
+        <td class="px-6 py-3.5 text-sm text-slate-700 max-w-xs">{{ (c.problem or '')[:80] }}{% if c.problem and c.problem|length > 80 %}…{% endif %}</td>
+        <td class="px-6 py-3.5 whitespace-nowrap"><span class="status status-{{ c.status }}">{{ c.status | status_label }}</span></td>
+        <td class="px-6 py-3.5 text-right">
+          <a class="text-xs font-medium text-slate-400 hover:text-sky-600 transition-colors whitespace-nowrap" href="{{ url_for('main.complaint_detail', complaint_id=c.id) }}">Ver →</a>
+        </td>
       </tr>
       {% endfor %}
+      <tr id="no-results-row" style="display:none">
+        <td colspan="6" class="px-6 py-10 text-center text-sm text-slate-400">No se encontraron quejas con los filtros aplicados.</td>
+      </tr>
     </tbody>
   </table>
+
+  {% else %}
+  <div class="flex flex-col items-center py-20 gap-4 text-slate-400">
+    <p class="text-sm">No hay quejas registradas aún.</p>
+    <a href="{{ url_for('main.nueva_queja') }}" class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors">Grabar primera queja</a>
+  </div>
+  {% endif %}
+
 </div>
-{% else %}
-<div class="flex flex-col items-center py-20 gap-4 text-slate-400">
-  <p class="text-sm">No hay quejas registradas aún.</p>
-  <a href="{{ url_for('main.nueva_queja') }}" class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors">Grabar primera queja</a>
-</div>
-{% endif %}
 {% endblock %}

@@ -14,8 +14,8 @@
     <p class="text-sm text-slate-400">{{ complaint.created_at.strftime('%d/%m/%Y %H:%M') }}{% if complaint.session_label %} · {{ complaint.session_label }}{% endif %}</p>
   </div>
   <div class="flex gap-2 items-center pt-1 flex-shrink-0">
-    <span class="badge badge-{{ complaint.category }}">{{ complaint.category or '—' }}</span>
-    <span class="status status-{{ complaint.status }}">{{ complaint.status }}</span>
+    <span class="badge badge-{{ complaint.category }}">{{ complaint.category | category_label }}</span>
+    <span class="status status-{{ complaint.status }}">{{ complaint.status | status_label }}</span>
   </div>
 </div>
 
@@ -53,11 +53,41 @@
   <p class="px-4 pt-3.5 pb-4 text-sm leading-relaxed text-slate-700 border-t border-slate-200 bg-slate-50">{{ complaint.transcription or '—' }}</p>
 </details>
 
-{% if complaint.status != 'reviewed' %}
-<div class="mb-5">
-  <button class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors" data-complaint-id="{{ complaint.id }}" data-action="reviewed">Marcar como revisado</button>
+{% if complaint.status == 'error' %}
+<div class="mb-5 p-4 border border-red-200 bg-red-50 rounded-lg">
+  <p class="text-xs font-semibold uppercase tracking-wider text-red-500 mb-1.5">Error de procesamiento</p>
+  <p class="text-sm text-red-700 mb-3">{{ complaint.processing_error or 'Error desconocido al procesar el audio.' }}</p>
+  <button class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors disabled:opacity-40"
+          data-complaint-id="{{ complaint.id }}" data-action="retry">Reintentar procesamiento</button>
 </div>
 {% endif %}
+
+{% if complaint.status != 'reviewed' and complaint.status != 'error' %}
+<div class="mb-5">
+  <button class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors"
+          data-complaint-id="{{ complaint.id }}"
+          data-action="reviewed"
+          data-solution="{{ complaint.applied_solution | e or '' }}">Cerrar queja</button>
+</div>
+{% endif %}
+
+<!-- Modal: solución aplicada -->
+<div id="close-modal" style="display:none" class="fixed inset-0 bg-black/40 z-50">
+  <div class="flex items-center justify-center min-h-full p-4">
+    <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+      <h2 class="text-base font-semibold text-slate-900 mb-1">Cerrar queja</h2>
+      <p class="text-xs text-slate-500 mb-4">Documenta la solución que se aplicó antes de cerrar.</p>
+      <textarea id="modal-solution" rows="4"
+        placeholder="Describe la solución que se aplicó al huésped…"
+        class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-sky-400 transition-colors resize-none text-slate-700 placeholder-slate-400"></textarea>
+      <p id="modal-error" class="text-xs text-red-500 mt-1 hidden">Por favor describe la solución antes de cerrar.</p>
+      <div class="flex gap-2 mt-4">
+        <button id="modal-confirm" class="flex-1 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors">Confirmar y cerrar</button>
+        <button id="modal-cancel" class="flex-1 py-2 border border-slate-200 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <a href="{{ url_for('main.index') }}" class="text-sm font-medium text-slate-400 border-b border-slate-200 pb-px hover:text-slate-900 hover:border-slate-900 transition-colors">← Volver al dashboard</a>
 {% endblock %}

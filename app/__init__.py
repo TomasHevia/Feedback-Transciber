@@ -21,6 +21,29 @@ def create_app():
 
     db.init_app(app)
 
+    CATEGORY_LABELS = {
+        'ruido': 'Ruido', 'limpieza': 'Limpieza', 'facturacion': 'Facturación',
+        'temperatura': 'Temperatura', 'mantenimiento': 'Mantenimiento',
+        'internet_wifi': 'WiFi / Internet', 'television': 'Televisión',
+        'electricidad': 'Electricidad', 'agua': 'Agua', 'plomeria': 'Plomería',
+        'check_in': 'Ingreso', 'check_out': 'Salida', 'reserva': 'Reserva',
+        'sobreventa': 'Sobreventa', 'habitacion_incorrecta': 'Hab. incorrecta',
+        'llaves_acceso': 'Llaves / Acceso', 'equipaje': 'Equipaje',
+        'estacionamiento': 'Estacionamiento', 'transporte': 'Transporte',
+        'restaurante': 'Restaurante', 'desayuno': 'Desayuno',
+        'room_service': 'Servicio a la habitación', 'servicio_no_atendido': 'Sin atención',
+        'personal': 'Personal', 'seguridad': 'Seguridad',
+        'cobro_indebido': 'Cobro indebido', 'reembolso': 'Reembolso',
+        'amenidades': 'Amenidades', 'piscina': 'Piscina',
+        'gimnasio': 'Gimnasio', 'accesibilidad': 'Accesibilidad', 'otro': 'Otro',
+    }
+    STATUS_LABELS = {
+        'pending': 'Procesando…', 'processed': 'Sin revisar',
+        'reviewed': 'Cerrado', 'error': 'Error',
+    }
+    app.jinja_env.filters['category_label'] = lambda c: CATEGORY_LABELS.get(c, c or '—')
+    app.jinja_env.filters['status_label'] = lambda s: STATUS_LABELS.get(s, s or '—')
+
     from app.routes import main, api
     from app.auth import auth
     app.register_blueprint(main)

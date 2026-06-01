@@ -7,12 +7,48 @@
   font-weight: 500;
   white-space: nowrap;
 }
-.badge-ruido                { background: #fef9c3; color: #854d0e; }
-.badge-limpieza             { background: #dbeafe; color: #1e40af; }
-.badge-facturación          { background: #f3e8ff; color: #6b21a8; }
-.badge-temperatura          { background: #ffedd5; color: #9a3412; }
-.badge-servicio_no_atendido { background: #fee2e2; color: #991b1b; }
-.badge-otro                 { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+/* Amarillo — ruido / electricidad */
+.badge-ruido                 { background: #fef9c3; color: #854d0e; }
+.badge-electricidad          { background: #fef3c7; color: #78350f; }
+/* Naranja — temperatura / mantenimiento / transporte */
+.badge-temperatura           { background: #ffedd5; color: #9a3412; }
+.badge-mantenimiento         { background: #fed7aa; color: #c2410c; }
+.badge-estacionamiento       { background: #ffedd5; color: #9a3412; }
+.badge-transporte            { background: #fed7aa; color: #c2410c; }
+.badge-equipaje              { background: #fef3c7; color: #92400e; }
+/* Azul — limpieza / agua / wifi */
+.badge-limpieza              { background: #dbeafe; color: #1e40af; }
+.badge-agua                  { background: #e0f2fe; color: #0369a1; }
+.badge-plomeria              { background: #bfdbfe; color: #1d4ed8; }
+.badge-internet_wifi         { background: #e0f2fe; color: #0369a1; }
+/* Morado — facturación / cobros */
+.badge-facturacion           { background: #f3e8ff; color: #6b21a8; }
+.badge-cobro_indebido        { background: #ede9fe; color: #5b21b6; }
+.badge-reembolso             { background: #ddd6fe; color: #4c1d95; }
+/* Verde azulado — check-in / acceso / reservas */
+.badge-check_in              { background: #ccfbf1; color: #0f766e; }
+.badge-check_out             { background: #d1fae5; color: #065f46; }
+.badge-reserva               { background: #d1fae5; color: #047857; }
+.badge-llaves_acceso         { background: #ccfbf1; color: #0f766e; }
+/* Verde — gastronomía */
+.badge-restaurante           { background: #dcfce7; color: #166534; }
+.badge-desayuno              { background: #d1fae5; color: #166534; }
+.badge-room_service          { background: #bbf7d0; color: #15803d; }
+/* Rojo — problemas graves */
+.badge-servicio_no_atendido  { background: #fee2e2; color: #991b1b; }
+.badge-personal              { background: #fecaca; color: #b91c1c; }
+.badge-seguridad             { background: #fee2e2; color: #7f1d1d; }
+.badge-sobreventa            { background: #fecaca; color: #b91c1c; }
+.badge-habitacion_incorrecta { background: #fee2e2; color: #991b1b; }
+/* Cyan — amenidades */
+.badge-amenidades            { background: #cffafe; color: #0e7490; }
+.badge-piscina               { background: #e0f2fe; color: #0369a1; }
+.badge-gimnasio              { background: #f0fdf4; color: #16a34a; }
+/* Rosa — accesibilidad / televisión */
+.badge-accesibilidad         { background: #fdf4ff; color: #86198f; }
+.badge-television            { background: #f5f3ff; color: #5b21b6; }
+/* Gris — otro */
+.badge-otro                  { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
 
 /* Status */
 .status {

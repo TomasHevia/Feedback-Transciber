@@ -3,34 +3,21 @@ import json
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-from google.oauth2 import service_account
-from faster_whisper import WhisperModel
-import torch
+
+try:
+    from faster_whisper import WhisperModel
+    import torch
+    _WHISPER_AVAILABLE = True
+except ImportError:
+    _WHISPER_AVAILABLE = False
 
 _whisper_model = None
 load_dotenv()
-credentials_path = os.getenv("ROUTE_CREDENTIALS")
-project = os.getenv("GOOGLE_CLOUD_PROJECT_ID")
-location = os.getenv("GOOGLE_CLOUD_LOCATION")
 
-if credentials_path:
-    credentials = service_account.Credentials.from_service_account_file(
-        credentials_path,
-        scopes=["https://www.googleapis.com/auth/cloud-platform"]
-    )
-
-    client = genai.Client(
-        vertexai=True,
-        project=project,
-        location=location,
-        credentials=credentials,
-    )
-else:
-    client = genai.Client(
-        vertexai=True,
-        project=project,
-        location=location,
-    )
+client = genai.Client(
+    api_key=os.getenv("GEMINI_API_KEY"),
+    http_options={"timeout": 45},
+)
 
 MODEL_NAME = os.getenv(
     "GOOGLE_CLOUD_MODEL",
@@ -77,15 +64,22 @@ Devuelve únicamente la transcripción.
 
 
 def transcribe_audio(audio_path: str) -> tuple[str, float]:
-    """
-    Transcribes audio using Gemini. Returns (transcription_text, estimated_cost_usd).
-    Falls back to Whisper if Gemini fails.
-    """
-    try:
-        return _transcribe_with_gemini(audio_path)
-    except Exception as gemini_err:
-        print(f"[transcribe] Gemini failed ({gemini_err}), falling back to Whisper")
-        return _transcribe_with_whisper(audio_path)
+    last_gemini_err = None
+    for attempt in range(2):
+        try:
+            return _transcribe_with_gemini(audio_path)
+        except Exception as e:
+            last_gemini_err = e
+            print(f"[transcribe] Gemini intento {attempt + 1}/2 falló: {e}")
+
+    if not _WHISPER_AVAILABLE:
+        raise RuntimeError(
+            f"Gemini no pudo transcribir el audio ({last_gemini_err}). "
+            "Whisper no está instalado. Por favor ingresa la transcripción manualmente."
+        )
+
+    print("[transcribe] Gemini falló dos veces, usando Whisper como respaldo")
+    return _transcribe_with_whisper(audio_path)
 
 
 def _transcribe_with_gemini(audio_path: str) -> tuple[str, float]:
@@ -113,17 +107,16 @@ def _transcribe_with_gemini(audio_path: str) -> tuple[str, float]:
     return text, cost
 
 def _get_whisper_model():
+    if not _WHISPER_AVAILABLE:
+        raise RuntimeError("faster-whisper not installed")
     global _whisper_model
-
     if _whisper_model is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
-
         _whisper_model = WhisperModel(
             "base",
             device=device,
             compute_type="float16" if device == "cuda" else "int8"
         )
-
     return _whisper_model
 
 
@@ -142,28 +135,82 @@ def _transcribe_with_whisper(audio_path: str) -> tuple[str, float]:
 
 
 def analyze_complaint(transcription: str) -> tuple[dict, float]:
-    """
-    Sends transcription to Gemini for structured analysis.
-    Returns (result_dict, cost_usd).
-    """
-    prompt = ANALYSIS_PROMPT.format(transcription=transcription)
-    response = client.models.generate_content(
-        model=MODEL_NAME,
-        contents=prompt
-    )
+    import re
+    last_err = None
+    for attempt in range(2):
+        try:
+            prompt = ANALYSIS_PROMPT.format(transcription=transcription)
+            response = client.models.generate_content(model=MODEL_NAME, contents=prompt)
+            raw = response.text.strip()
+            if "```" in raw:
+                raw = re.sub(r"```(?:json)?", "", raw).strip()
+            start, end = raw.find("{"), raw.rfind("}") + 1
+            if start != -1 and end > start:
+                raw = raw[start:end]
+            data = json.loads(raw)
+            cost = _estimate_gemini_cost(response)
+            return data, cost
+        except Exception as e:
+            last_err = e
+            print(f"[analyze] Intento {attempt + 1}/2 falló: {e}")
+    raise last_err
 
-    raw = response.text.strip()
-    # Strip markdown code fences if present
-    if "```" in raw:
-        import re
-        raw = re.sub(r"```(?:json)?", "", raw).strip()
-    # Extract JSON object in case Gemini adds surrounding text
-    start, end = raw.find("{"), raw.rfind("}") + 1
-    if start != -1 and end > start:
-        raw = raw[start:end]
-    data = json.loads(raw)
-    cost = _estimate_gemini_cost(response)
-    return data, cost
+
+REPORT_PROMPT = """
+Eres un analista de calidad hotelera. Analiza las siguientes {total} quejas de recepción y genera un reporte ejecutivo en JSON con exactamente esta estructura (sin texto adicional):
+
+{{
+  "resumen": "<2-3 oraciones con el panorama general>",
+  "periodo": "<descripción del rango de fechas cubierto>",
+  "problemas_principales": [
+    {{"categoria": "<slug>", "label": "<nombre legible>", "frecuencia": 0, "descripcion": "<patrón observado en las quejas>"}}
+  ],
+  "patrones_detectados": ["<patrón específico, ej: ruido concentrado en turno noche>"],
+  "acciones_recomendadas": [
+    {{"prioridad": "alta", "accion": "<acción concreta y específica>", "justificacion": "<por qué es prioritaria>"}}
+  ],
+  "quejas_criticas": [<id1>, <id2>],
+  "conclusion": "<párrafo ejecutivo con cierre y próximos pasos>"
+}}
+
+Responde ÚNICAMENTE con el JSON, sin texto adicional.
+
+Quejas a analizar:
+{complaints_text}
+"""
+
+
+def generate_report(complaints: list) -> tuple[dict, float]:
+    import re
+    lines = []
+    for c in complaints:
+        lines.append(
+            f"#{c.id} | {c.created_at.strftime('%d/%m/%Y')} | cat:{c.category}"
+            + (f" | sesión:{c.session_label}" if c.session_label else "")
+            + f" | problema:{c.problem or 'N/A'}"
+            + f" | solución:{c.applied_solution or 'N/A'}"
+            + f" | acción:{c.suggested_action or 'N/A'}"
+        )
+    complaints_text = "\n".join(lines)
+
+    last_err = None
+    for attempt in range(2):
+        try:
+            prompt = REPORT_PROMPT.format(total=len(complaints), complaints_text=complaints_text)
+            response = client.models.generate_content(model=MODEL_NAME, contents=prompt)
+            raw = response.text.strip()
+            if "```" in raw:
+                raw = re.sub(r"```(?:json)?", "", raw).strip()
+            start, end = raw.find("{"), raw.rfind("}") + 1
+            if start != -1 and end > start:
+                raw = raw[start:end]
+            data = json.loads(raw)
+            cost = _estimate_gemini_cost(response)
+            return data, cost
+        except Exception as e:
+            last_err = e
+            print(f"[report] Intento {attempt + 1}/2 falló: {e}")
+    raise last_err
 
 
 def _estimate_gemini_cost(response) -> float:
