@@ -120,7 +120,13 @@ def _transcribe_with_gemini(audio_path: str) -> tuple[str, float]:
         ],
     )
 
-    text = response.text.strip()
+   
+    text = (response.text or "").strip()
+    if not text:
+        raise ValueError(
+            "Gemini devolvió una respuesta vacía. El audio puede estar en silencio, "
+            "ser demasiado corto, o haber sido bloqueado por filtros de seguridad."
+        )
     cost = _estimate_gemini_cost(response)
 
     return text, cost
@@ -172,7 +178,9 @@ def analyze_complaint(transcription: str) -> tuple[dict, float]:
         except Exception as e:
             last_err = e
             print(f"[analyze] Intento {attempt + 1}/2 falló: {e}")
-    raise last_err
+    if last_err is not None:
+        raise last_err
+    raise RuntimeError("analyze_complaint agotó los reintentos sin capturar ningún error.")
 
 
 REPORT_PROMPT = """
@@ -229,16 +237,18 @@ def generate_report(complaints: list) -> tuple[dict, float]:
         except Exception as e:
             last_err = e
             print(f"[report] Intento {attempt + 1}/2 falló: {e}")
-    raise last_err
+    if last_err is not None:
+        raise last_err
+    raise RuntimeError("generate_report agotó los reintentos sin capturar ningún error.")
 
 
 def _estimate_gemini_cost(response) -> float:
-    """Rough cost estimate based on token counts for gemini-1.5-flash."""
+    """Costo real basado en usage_metadata. Tarifas: gemini-2.5-flash ($0.30/1M input, $2.50/1M output)."""
     try:
         usage = response.usage_metadata
-        input_tokens = getattr(usage, "prompt_token_count", 0) or 0
+        input_tokens  = getattr(usage, "prompt_token_count",     0) or 0
         output_tokens = getattr(usage, "candidates_token_count", 0) or 0
-        # GEMINI FLASH 2.5 COST
-        return (input_tokens * 0.075 + output_tokens * 0.30) / 1_000_000
+        # Gemini 2.5 Flash
+        return (input_tokens * 0.30 + output_tokens * 2.50) / 1_000_000
     except Exception:
         return 0.0

@@ -1,4 +1,5 @@
 import os
+import uuid
 from flask import Blueprint, request, jsonify, render_template, current_app, send_from_directory, redirect, url_for, session
 from werkzeug.utils import secure_filename
 from app import db
@@ -120,7 +121,9 @@ def upload_audio():
         return jsonify({"error": "Invalid or missing file"}), 400
 
     session_label = request.form.get("session_label", "")
-    filename = secure_filename(file.filename)
+    raw_name = secure_filename(file.filename)
+    stem, ext = os.path.splitext(raw_name)
+    filename = f"{stem}_{uuid.uuid4().hex[:8]}{ext}"
     save_path = os.path.join(current_app.config["UPLOAD_FOLDER"], filename)
     file.save(save_path)
 
