@@ -15,29 +15,28 @@ except ImportError:
 _whisper_model = None
 load_dotenv()
 
-project = os.getenv("GOOGLE_CLOUD_PROJECT_ID")
-location = os.getenv("GOOGLE_CLOUD_LOCATION")
-
 credentials_path = os.getenv("ROUTE_CREDENTIALS")
+gemini_api_key   = os.getenv("GEMINI_API_KEY")
+project          = os.getenv("GOOGLE_CLOUD_PROJECT_ID")
+location         = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
 
+# ── Inicialización del cliente Gemini ───────────────────────────────
+# Prioridad: 1) Service Account  2) API Key  3) gcloud ADC
 if credentials_path:
-    credentials = service_account.Credentials.from_service_account_file(
+    _creds = service_account.Credentials.from_service_account_file(
         credentials_path,
         scopes=["https://www.googleapis.com/auth/cloud-platform"]
     )
-
     client = genai.Client(
-        vertexai=True,
-        project=project,
-        location=location,
-        credentials=credentials,
+        vertexai=True, project=project, location=location, credentials=_creds
     )
+    print("[gemini] Auth: Service Account (Vertex AI)")
+elif gemini_api_key:
+    client = genai.Client(api_key=gemini_api_key)
+    print("[gemini] Auth: API Key (Google AI Studio)")
 else:
-    client = genai.Client(
-        vertexai=True,
-        project=project,
-        location=location,
-    )
+    client = genai.Client(vertexai=True, project=project, location=location)
+    print("[gemini] Auth: Application Default Credentials (gcloud)")
 
 MODEL_NAME = os.getenv(
     "GOOGLE_CLOUD_MODEL",
@@ -121,7 +120,13 @@ def _transcribe_with_gemini(audio_path: str) -> tuple[str, float]:
         ],
     )
 
-    text = response.text.strip()
+   
+    text = (response.text or "").strip()
+    if not text:
+        raise ValueError(
+            "Gemini devolvió una respuesta vacía. El audio puede estar en silencio, "
+            "ser demasiado corto, o haber sido bloqueado por filtros de seguridad."
+        )
     cost = _estimate_gemini_cost(response)
 
     return text, cost
@@ -173,7 +178,9 @@ def analyze_complaint(transcription: str) -> tuple[dict, float]:
         except Exception as e:
             last_err = e
             print(f"[analyze] Intento {attempt + 1}/2 falló: {e}")
-    raise last_err
+    if last_err is not None:
+        raise last_err
+    raise RuntimeError("analyze_complaint agotó los reintentos sin capturar ningún error.")
 
 
 REPORT_PROMPT = """
@@ -230,16 +237,18 @@ def generate_report(complaints: list) -> tuple[dict, float]:
         except Exception as e:
             last_err = e
             print(f"[report] Intento {attempt + 1}/2 falló: {e}")
-    raise last_err
+    if last_err is not None:
+        raise last_err
+    raise RuntimeError("generate_report agotó los reintentos sin capturar ningún error.")
 
 
 def _estimate_gemini_cost(response) -> float:
-    """Rough cost estimate based on token counts for gemini-1.5-flash."""
+    """Costo real basado en usage_metadata. Tarifas: gemini-2.5-flash ($0.30/1M input, $2.50/1M output)."""
     try:
         usage = response.usage_metadata
-        input_tokens = getattr(usage, "prompt_token_count", 0) or 0
+        input_tokens  = getattr(usage, "prompt_token_count",     0) or 0
         output_tokens = getattr(usage, "candidates_token_count", 0) or 0
-        # GEMINI FLASH 2.5 COST
-        return (input_tokens * 0.075 + output_tokens * 0.30) / 1_000_000
+        # Gemini 2.5 Flash
+        return (input_tokens * 0.30 + output_tokens * 2.50) / 1_000_000
     except Exception:
         return 0.0

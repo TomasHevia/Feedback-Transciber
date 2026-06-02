@@ -106,7 +106,16 @@ const CATEGORY_LABELS = {
   btn.addEventListener("click", async () => {
     if (!isRecording) {
       try {
+        // El micrófono solo funciona en contextos seguros (localhost o HTTPS).
+        // Acceder por IP local vía HTTP bloquea navigator.mediaDevices.
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          statusMsg.textContent =
+            "⚠️ El micrófono no está disponible. " +
+            "Accede por http://localhost:5001 (no por IP) o configura HTTPS.";
+          return;
+        }
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
         mediaRecorder = new MediaRecorder(stream);
         chunks = [];
         mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
