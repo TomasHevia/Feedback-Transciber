@@ -15,29 +15,28 @@ except ImportError:
 _whisper_model = None
 load_dotenv()
 
-project = os.getenv("GOOGLE_CLOUD_PROJECT_ID")
-location = os.getenv("GOOGLE_CLOUD_LOCATION")
-
 credentials_path = os.getenv("ROUTE_CREDENTIALS")
+gemini_api_key   = os.getenv("GEMINI_API_KEY")
+project          = os.getenv("GOOGLE_CLOUD_PROJECT_ID")
+location         = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
 
+# ── Inicialización del cliente Gemini ───────────────────────────────
+# Prioridad: 1) Service Account  2) API Key  3) gcloud ADC
 if credentials_path:
-    credentials = service_account.Credentials.from_service_account_file(
+    _creds = service_account.Credentials.from_service_account_file(
         credentials_path,
         scopes=["https://www.googleapis.com/auth/cloud-platform"]
     )
-
     client = genai.Client(
-        vertexai=True,
-        project=project,
-        location=location,
-        credentials=credentials,
+        vertexai=True, project=project, location=location, credentials=_creds
     )
+    print("[gemini] Auth: Service Account (Vertex AI)")
+elif gemini_api_key:
+    client = genai.Client(api_key=gemini_api_key)
+    print("[gemini] Auth: API Key (Google AI Studio)")
 else:
-    client = genai.Client(
-        vertexai=True,
-        project=project,
-        location=location,
-    )
+    client = genai.Client(vertexai=True, project=project, location=location)
+    print("[gemini] Auth: Application Default Credentials (gcloud)")
 
 MODEL_NAME = os.getenv(
     "GOOGLE_CLOUD_MODEL",
